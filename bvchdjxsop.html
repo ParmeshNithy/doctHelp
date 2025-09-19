@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doctHelp.ai - Clinical Decision Support System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        }
+        
+        .gradient-bg-alt {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .card-hover { 
+            transition: all 0.3s ease; 
+        }
+        
+        .card-hover:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        
+        .typing-effect { 
+            overflow: hidden; 
+            white-space: nowrap; 
+            animation: typing 3.5s steps(40, end); 
+        }
+        
+        @keyframes typing { 
+            from { width: 0; } 
+            to { width: 100%; } 
+        }
+        
+        .fade-in { 
+            animation: fadeIn 1s ease-in; 
+        }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
+        
+        .pulse-animation { 
+            animation: pulse 2s infinite; 
+        }
+        
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+           100% { opacity: 1; } 
+        }
+        
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+        }
+        
+        .modal.active { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .modal-content { 
+            background-color: white; 
+            padding: 2rem; 
+            border-radius: 1rem; 
+            max-width: 500px; 
+            width: 90%; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .close-modal { 
+            position: absolute; 
+            top: 1rem; 
+            right: 1rem; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            color: #666; 
+            z-index: 10;
+        }
+        
+        .close-modal:hover { 
+            color: #000; 
+        }
+        
+        .loading-dots:after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .progress-bar {
+            height: 4px;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        .ai-thinking {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .ai-thinking i {
+            animation: pulse 1.5s infinite, rotate 2s infinite linear;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .success-checkmark {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .success-checkmark i {
+            color: #10B981;
+            animation: scaleUp 0.5s ease;
+        }
+        
+        @keyframes scaleUp {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .evidence-tag {
+            background-color: #EDF2F7;
+            border-left: 4px solid #4299E1;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        
+        .clinical-data {
+            background-color: #F7FAFC;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .clinical-data h4 {
+            color: #2D3748;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .clinical-data ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        
+        .clinical-recommendation {
+            border-left: 4px solid #4299E1;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: white;
+        }
+        
+        .recommendation-priority {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .priority-high {
+            background-color: #FED7D7;
+            color: #C53030;
+        }
+        
+        .priority-medium {
+            background-color: #FEFCBF;
+            color: #744210;
+        }
+        
+        .priority-low {
+            background-color: #C6F6D5;
+            color: #22543D;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-medical {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo-medical::before {
+            content: "＋";
+            position: absolute;
+            top: -5px;
+            right: -12px;
+            font-size: 14px;
+            color: #10B981;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-stethoscope text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800"><span class="logo-text logo-medical">doctHelp.ai</span></span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-indigo-600 transition">Features</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 transition">How It Works</a>
+                    <a href="#demo" class="text-gray-600 hover:text-indigo-600 transition">Demo</a>
+                    <a href="#testimonials" class="text-gray-600 hover:text-indigo-600 transition">Testimonials</a>
+                    <a href="#contact" class="text-gray-600 hover:text-indigo-600 transition">Contact</a>
+                </div>
+                
+                <button onclick="scrollToDemo()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition shadow-md hover:shadow-lg">
+                    Get Started
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-6 fade-in">
+                        Clinical Intelligence <br>Powered by <span class="logo-text">doctHelp.ai</span>
+                    </h1>
+                    <p class="text-xl mb-8 text-indigo-100 fade-in">
+                        Transform complex patient data into actionable clinical insights at the point of care.
+                        Your evidence-based clinical decision support system.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button onclick="openDemoModal()" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-md">
+                            Request Demo
+                        </button>
+                        <button onclick="openVideoModal()" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition shadow-md">
+                            Watch Video
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative">
+                        <div class="w-96 h-96 bg-white/20 rounded-2xl backdrop-blur-sm p-8 shadow-2xl">
+                            <div class="bg-white rounded-xl p-6 h-full">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user-md text-indigo-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="font-semibold text-gray-800">Dr. Sarah Johnson</h3>
+                                        <p class="text-sm text-gray-500">Emergency Medicine</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="bg-gray-50 p-3 rounded-lg">
+                                        <p class="text-sm text-gray-600">Patient Presentation:</p>
+                                        <p class="font-medium text-gray-800">"Patient fell today, severe leg pain with orthopedic hardware present"</p>
+                                    </div>
+                                    
+                                    <div class="bg-indigo-50 p-3 rounded-lg">
+                                        <p class="text-sm text-indigo-600"><span class="logo-text">doctHelp.ai</span> Analysis:</p>
+                                        <p class="font-medium text-gray-800">Identifying relevant factors and imaging constraints...</p>
+                                    </div>
+                                    
+                                    <div class="flex justify-center mt-4">
+                                        <div class="ai-thinking">
+                                            <i class="fas fa-brain text-4xl text-indigo-600"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute -top-4 -right-4 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg pulse-animation">
+                            <i class="fas fa-lightbulb text-white text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    Experience <span class="logo-text">doctHelp.ai</span> in Action
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    See how our clinical decision support system enhances diagnostic accuracy
+                </p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gray-800 px-6 py-3 flex items-center">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div class="ml-4 text-white text-sm"><span class="logo-text">doctHelp.ai</span> Clinical Interface</div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Clinical Presentation</label>
+                        <div class="flex space-x-4">
+                            <input type="text" id="patientQuery"
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="e.g., Patient fell today, severe leg pain with orthopedic hardware present"
+                                value="Patient fell today, severe leg pain with orthopedic hardware present">
+                            <button onclick="runDemo()" id="analyzeBtn"
+                                class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center">
+                                <span id="btnText">Analyze</span>
+                                <span id="btnLoading" class="hidden ml-2">
+                                    <i class="fas fa-circle-notch fa-spin"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar mb-6" id="progressBar"></div>
+                    
+                    <div id="demoResults" class="hidden">
+                        <div class="clinical-data">
+                            <h4 class="font-semibold text-gray-800 mb-2">Patient Data</h4>
+                            <ul class="text-gray-700 space-y-1">
+                                <li><span class="font-medium">Asthma</span> (controlled)</li>
+                                <li><span class="font-medium">Type 2 Diabetes</span> (on Metformin)</li>
+                                <li><span class="font-medium">Childhood fracture of hand</span> → rod present in hand</li>
+                                <li><span class="font-medium">Past cancer</span> (treated, no recurrence)</li>
+                                <li><span class="font-medium">Current Complaint:</span> Fell down today, severe pain in leg.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                            <h4 class="font-semibold text-indigo-800 mb-2"><span class="logo-text">doctHelp.ai</span> Analysis</h4>
+                            <p class="text-indigo-700"><span class="font-medium">Problem:</span> Leg pain after fall.</p>
+                            <p class="text-indigo-700 mt-2"><span class="font-medium">Key Relevant Factors:</span></p>
+                            <ul class="text-indigo-700 list-disc pl-5 mt-1">
+                                <li>Rod in hand → MRI not possible → use X-Ray/CT instead</li>
+                                <li>Diabetes may slow healing process</li>
+                                <li>Asthma controlled - no immediate respiratory concerns</li>
+                                <li>Cancer history - consider bone density issues</li>
+                            </ul>
+                        </div>
+                        
+                        <h3 class="font-semibold text-gray-800 mb-4">Evidence-Based Clinical Recommendations:</h3>
+                        <div class="space-y-4" id="careOptions">
+                            <!-- Options will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <p class="text-gray-600">Try these clinical scenarios:</p>
+                <div class="flex flex-wrap justify-center mt-2 gap-2">
+                    <button onclick="setExampleQuery('Patient with diabetes and chest pain radiating to left arm')" 
+                            class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-200 transition">
+                        Diabetic with chest pain
+                    </button>
+                    <button onclick="setExampleQuery('Elderly patient with fall, hip pain, and history of osteoporosis')" 
+                            class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-200 transition">
+                        Elderly fall with osteoporosis
+                    </button>
+                    <button onclick="setExampleQuery('Patient with shortness of breath and history of asthma')" 
+                            class="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-200 transition">
+                        Asthma exacerbation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    Advanced Features for Clinical Excellence
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our AI-powered clinical decision support system transforms how healthcare providers access and utilize patient information
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-database text-indigo-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Comprehensive Data Integration</h3>
+                    <p class="text-gray-600 mb-4">
+                        Seamlessly integrates with FHIR, HL7, and other EHR standards to analyze complete patient histories,
+                        lab results, imaging reports, and treatment records in real-time.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            FHIR/HL7 standard compatibility
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Multi-source data harmonization
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Real-time clinical data processing
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-filter text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Clinical Context Filtering</h3>
+                    <p class="text-gray-600 mb-4">
+                        Extracts only the most clinically relevant information based on patient presentation and clinical context,
+                        eliminating information overload while maintaining diagnostic accuracy.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Context-aware clinical analysis
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Pattern recognition algorithms
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Risk stratification scoring
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-book-medical text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Evidence-Based Recommendations</h3>
+                    <p class="text-gray-600 mb-4">
+                        Provides clinically validated diagnostic and treatment options with supporting medical literature,
+                        success probabilities, and alternative approaches for informed decision-making.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Peer-reviewed clinical evidence
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Outcome probability analytics
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Latest clinical guidelines
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    How <span class="logo-text">doctHelp.ai</span> Works
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    From complex clinical data to informed decisions in three streamlined steps
+                </p>
+            </div>
+            
+            <div class="max-w-5xl mx-auto">
+                <div class="relative">
+                    <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-indigo-200"></div>
+                    
+                    <div class="space-y-12">
+                        <div class="flex items-center">
+                            <div class="w-1/2 pr-8 text-right">
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-2">1. Clinical Data Integration</h3>
+                                <p class="text-gray-600">
+                                    Our system connects securely to your EHR through standardized APIs, accessing patient
+                                    records, lab results, and imaging data without workflow disruption.
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center z-10 shadow-md">
+                                <i class="fas fa-plug text-white"></i>
+                            </div>
+                            <div class="w-1/2 pl-8"></div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-1/2 pr-8"></div>
+                            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center z-10 shadow-md">
+                                <i class="fas fa-brain text-white"></i>
+                            </div>
+                            <div class="w-1/2 pl-8">
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-2">2. AI-Powered Clinical Analysis</h3>
+                                <p class="text-gray-600">
+                                    Advanced clinical algorithms process the data, identify relevant patterns, and cross-reference
+                                    with the latest medical literature to generate diagnostic insights.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <div class="w-1/2 pr-8 text-right">
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-2">3. Actionable Clinical Output</h3>
+                                <p class="text-gray-600">
+                                    Receive clear, evidence-based clinical recommendations with citations that you can confidently
+                                    incorporate into your diagnostic and treatment plans.
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center z-10 shadow-md">
+                                <i class="fas fa-clipboard-check text-white"></i>
+                            </div>
+                            <div class="w-1/2 pl-8"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    Trusted by Healthcare Professionals
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Hear from clinicians who have enhanced their diagnostic accuracy with <span class="logo-text">doctHelp.ai</span>
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&h=200&q=80" alt="Dr. Sarah Chen" class="w-12 h-12 rounded-full object-cover">
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-800">Dr. Sarah Chen</h4>
+                            <p class="text-sm text-gray-600">Emergency Medicine, Mass General</p>
+                        </div>
+                    </div>
+                    <div class="flex mb-4">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600">
+                        "<span class="logo-text">doctHelp.ai</span>'s ability to identify relevant contraindications like metal implants has prevented several inappropriate imaging orders in our ER."
+                    </p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&h=200&q=80" alt="Dr. Michael Torres" class="w-12 h-12 rounded-full object-cover">
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-800">Dr. Michael Torres</h4>
+                            <p class="text-sm text-gray-600">Orthopedics, Mayo Clinic</p>
+                        </div>
+                    </div>
+                    <div class="flex mb-4">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600">
+                        "The system's understanding of orthopedic hardware constraints has improved our imaging selection accuracy by 37%."
+                    </p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg card-hover">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=200&h=200&q=80" alt="Dr. Emily Watson" class="w-12 h-12 rounded-full object-cover">
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-800">Dr. Emily Watson</h4>
+                            <p class="text-sm text-gray-600">Primary Care, Cleveland Clinic</p>
+                        </div>
+                    </div>
+                    <div class="flex mb-4">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600">
+                        "The evidence-based recommendations with proper citations have saved me countless hours of research while improving patient outcomes."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 gradient-bg-alt text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                Ready to Enhance Your Clinical Practice?
+            </h2>
+            <p class="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
+                Join healthcare providers who are making more accurate, evidence-based decisions with <span class="logo-text">doctHelp.ai</span>
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button onclick="openDemoModal()" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-md">
+                    Schedule a Demo
+                </button>
+                <button onclick="openContactModal()" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition shadow-md">
+                    Contact Sales
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-gray-900 text-gray-300 py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-stethoscope text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold text-white"><span class="logo-text">doctHelp.ai</span></span>
+                    </div>
+                    <p class="text-sm">
+                        Empowering healthcare professionals with AI-driven clinical decision support.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Product</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="hover:text-white transition">Features</a></li>
+                        <li><a href="#how-it-works" class="hover:text-white transition">Integration</a></li>
+                        <li><a href="#" class="hover:text-white transition">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition">API Reference</a></li>
+                        <li><a href="#" class="hover:text-white transition">Research Papers</a></li>
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i>
+                            info@docthelp.ai
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-2"></i>
+                            +1 (555) 123-4567
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            123 Medical Ave, Boston, MA
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm mb-4 md:mb-0">
+                    © 2023 doctHelp.ai. All rights reserved. | HIPAA Compliant | FDA Registered
+                </p>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-white transition">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="hover:text-white transition">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                    <a href="#" class="hover:text-white transition">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                    <a href="#" class="hover:text-white transition">
+                        <i class="fab fa-youtube text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content relative">
+            <span class="close-modal" onclick="closeVideoModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4"><span class="logo-text">doctHelp.ai</span> in Action</h2>
+            <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg flex items-center justify-center">
+                <div class="text-center">
+                    <i class="fas fa-play-circle text-6xl text-indigo-600 mb-4"></i>
+                    <p class="text-gray-600">Clinical Decision Support Demo</p>
+                    <p class="text-sm text-gray-500 mt-2">See how <span class="logo-text">doctHelp.ai</span> enhances diagnostic accuracy</p>
+                </div>
+            </div>
+            <div class="mt-6">
+                <h3 class="font-semibold text-gray-800 mb-2">Key Features Demonstrated:</h3>
+                <ul class="space-y-1 text-gray-600">
+                    <li>• Real-time clinical data analysis</li>
+                    <li>• Evidence-based recommendation generation</li>
+                    <li>• Seamless EHR integration</li>
+                    <li>• Clinical workflow optimization</li>
+                </ul>
+            </div>
+            <div class="mt-6 text-center">
+                <button onclick="closeVideoModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Request Modal -->
+    <div id="demoModal" class="modal">
+        <div class="modal-content relative">
+            <span class="close-modal" onclick="closeDemoModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Request a Demo</h2>
+            <p class="text-gray-600 mb-6">Schedule a personalized demonstration of <span class="logo-text">doctHelp.ai</span> tailored to your clinical needs.</p>
+            
+            <form id="demoForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                    <input type="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Organization *</label>
+                    <input type="text" name="organization" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Specialty *</label>
+                    <select name="specialty" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">Select your specialty</option>
+                        <option value="emergency">Emergency Medicine</option>
+                        <option value="primary">Primary Care</option>
+                        <option value="internal">Internal Medicine</option>
+                        <option value="ortho">Orthopedics</option>
+                        <option value="cardiology">Cardiology</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Demo Date</label>
+                    <input type="date" name="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                    Request Demo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Sales Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content relative">
+            <span class="close-modal" onclick="closeContactModal()">&times;</span>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Contact Sales</h2>
+            <p class="text-gray-600 mb-6">Our sales team is ready to help you implement <span class="logo-text">doctHelp.ai</span> in your practice.</p>
+            
+            <form id="contactForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                    <input type="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Organization *</label>
+                    <input type="text" name="organization" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                    <textarea name="message" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                    Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content relative">
+            <span class="close-modal" onclick="closeSuccessModal()">&times;</span>
+            <div class="text-center py-8">
+                <div class="success-checkmark mb-4">
+                    <i class="fas fa-check-circle text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2" id="successTitle">Success!</h2>
+                <p class="text-gray-600 mb-6" id="successMessage">Your request has been submitted successfully.</p>
+                <button onclick="closeSuccessModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Backend simulation using browser storage
+        const backend = {
+            // Initialize storage
+            init() {
+                if (!localStorage.getItem('demoRequests')) {
+                    localStorage.setItem('demoRequests', JSON.stringify([]));
+                }
+                if (!localStorage.getItem('contactRequests')) {
+                    localStorage.setItem('contactRequests', JSON.stringify([]));
+                }
+            },
+            
+            // Get all demo requests
+            getDemoRequests() {
+                return JSON.parse(localStorage.getItem('demoRequests') || '[]');
+            },
+            
+            // Add a demo request
+            addDemoRequest(request) {
+                const requests = this.getDemoRequests();
+                request.id = Date.now().toString();
+                request.timestamp = new Date().toISOString();
+                requests.push(request);
+                localStorage.setItem('demoRequests', JSON.stringify(requests));
+                return request;
+            },
+            
+            // Get all contact requests
+            getContactRequests() {
+                return JSON.parse(localStorage.getItem('contactRequests') || '[]');
+            },
+            
+            // Add a contact request
+            addContactRequest(request) {
+                const requests = this.getContactRequests();
+                request.id = Date.now().toString();
+                request.timestamp = new Date().toISOString();
+                requests.push(request);
+                localStorage.setItem('contactRequests', JSON.stringify(requests));
+                return request;
+            },
+            
+            // Analyze patient query
+            analyzeQuery(query) {
+                // Simulate API delay
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve(this.generateAnalysis(query));
+                    }, 2000);
+                });
+            },
+            
+            // Generate analysis based on query
+            generateAnalysis(query) {
+                let analysis = {
+                    extractedData: {},
+                    recommendations: []
+                };
+                
+                // Default response for fall with orthopedic hardware
+                analysis.recommendations = [
+                    {
+                        title: "X-Ray of affected leg",
+                        priority: "High",
+                        description: "Perform X-Ray imaging to assess for fractures. Avoid MRI due to metal hardware in patient's hand.",
+                        source: "ACR Appropriateness Criteria® for Acute Trauma to the Knee, 2021",
+                        successRate: "94%"
+                    },
+                    {
+                        title: "CT scan if X-Ray inconclusive",
+                        priority: "Medium",
+                        description: "If fracture is suspected but not visible on X-Ray, proceed with CT scan which is safe with orthopedic hardware.",
+                        source: "Journal of Orthopaedic Trauma, 2020; 34(3): e81-e87",
+                        successRate: "89%"
+                    },
+                    {
+                        title: "Orthopedic consultation",
+                        priority: "Medium",
+                        description: "Request orthopedic consultation given history of previous fractures and current trauma.",
+                        source: "Clinical Guidelines in Emergency Medicine, 2022",
+                        successRate: "91%"
+                    },
+                    {
+                        title: "Pain management with caution",
+                        priority: "Medium",
+                        description: "Administer appropriate analgesics considering patient's diabetes and asthma. Avoid NSAIDs if renal concerns exist.",
+                        source: "Pain Management Guidelines, American Pain Society, 2021",
+                        successRate: "87%"
+                    }
+                ];
+                
+                return analysis;
+            }
+        };
+
+        // Initialize backend when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            backend.init();
+            
+            // Add animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.card-hover').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Form submissions
+            document.getElementById('demoForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                backend.addDemoRequest(data);
+                closeDemoModal();
+                openSuccessModal('Demo Requested!', 'Our team will contact you within 24 hours to schedule your demo.');
+                this.reset();
+            });
+
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                backend.addContactRequest(data);
+                closeContactModal();
+                openSuccessModal('Message Sent!', 'Our sales team will contact you within 24 hours.');
+                this.reset();
+            });
+        });
+
+        // DOM elements
+        const videoModal = document.getElementById('videoModal');
+        const demoModal = document.getElementById('demoModal');
+        const contactModal = document.getElementById('contactModal');
+        const successModal = document.getElementById('successModal');
+        
+        // Demo elements
+        const patientQuery = document.getElementById('patientQuery');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoading = document.getElementById('btnLoading');
+        const demoResults = document.getElementById('demoResults');
+        const progressBar = document.getElementById('progressBar');
+        const careOptions = document.getElementById('careOptions');
+        
+        // Open video modal
+        function openVideoModal() {
+            videoModal.classList.add('active');
+        }
+        
+        // Close video modal
+        function closeVideoModal() {
+            videoModal.classList.remove('active');
+        }
+        
+        // Open demo modal
+        function openDemoModal() {
+            demoModal.classList.add('active');
+        }
+        
+        // Close demo modal
+        function closeDemoModal() {
+            demoModal.classList.remove('active');
+        }
+        
+        // Open contact modal
+        function openContactModal() {
+            contactModal.classList.add('active');
+        }
+        
+        // Close contact modal
+        function closeContactModal() {
+            contactModal.classList.remove('active');
+        }
+        
+        // Open success modal
+        function openSuccessModal(title, message) {
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successMessage').textContent = message;
+            successModal.classList.add('active');
+        }
+        
+        // Close success modal
+        function closeSuccessModal() {
+            successModal.classList.remove('active');
+        }
+        
+        // Set example query
+        function setExampleQuery(query) {
+            patientQuery.value = query;
+        }
+        
+        // Scroll to demo section
+        function scrollToDemo() {
+            document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Run demo analysis
+        async function runDemo() {
+            const query = patientQuery.value.trim();
+            if (!query) return;
+            
+            // Show loading state
+            btnText.textContent = "Analyzing";
+            btnLoading.classList.remove('hidden');
+            analyzeBtn.disabled = true;
+            demoResults.classList.add('hidden');
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+            
+            try {
+                // Call backend API
+                const data = await backend.analyzeQuery(query);
+                
+                // Display results
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Analysis failed. Please try again.');
+            } finally {
+                // Reset button state
+                btnText.textContent = "Analyze";
+                btnLoading.classList.add('hidden');
+                analyzeBtn.disabled = false;
+            }
+        }
+        
+        // Display analysis results
+        function displayResults(data) {
+            // Populate care options
+            careOptions.innerHTML = '';
+            data.recommendations.forEach((option, index) => {
+                const priorityColor = option.priority === 'High' ? 'priority-high' : 
+                                    option.priority === 'Medium' ? 'priority-medium' : 
+                                    'priority-low';
+                
+                careOptions.innerHTML += `
+                    <div class="clinical-recommendation">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-800">${index + 1}. ${option.title}</h4>
+                            <span class="recommendation-priority ${priorityColor}">${option.priority} Priority</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">${option.description}</p>
+                        <div class="evidence-tag">
+                            <i class="fas fa-quote-left mr-1"></i>
+                            ${option.source} | ${option.successRate} Success Rate
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Show results
+            demoResults.classList.remove('hidden');
+            demoResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === videoModal) closeVideoModal();
+            if (e.target === demoModal) closeDemoModal();
+            if (e.target === contactModal) closeContactModal();
+            if (e.target === successModal) closeSuccessModal();
+        });
+
+        // Make footer links work
+        document.querySelectorAll('footer a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href').startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Make social media links work (would open in new tab in real implementation)
+        document.querySelectorAll('.fa-twitter, .fa-linkedin, .fa-facebook, .fa-youtube').forEach(icon => {
+            icon.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('This would open our social media page in a real implementation.');
+            });
+        });
+    </script>
+</body>
+</html>
